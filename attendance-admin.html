@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance Admin — Registration Links</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --accent: #38bdf8; --text: #f1f5f9; --muted: #94a3b8;
+      --success: #4ade80; --error: #f87171;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding: 40px 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+    .card h2 { font-size: 16px; font-weight: 600; }
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 14px;
+      padding: 12px 14px; outline: none; font-family: inherit;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { min-height: 100px; resize: vertical; font-family: monospace; font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn {
+      padding: 12px 20px; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .divider { height: 1px; background: var(--border); }
+    /* link results */
+    .link-table { display: flex; flex-direction: column; gap: 10px; }
+    .link-row {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .link-emp  { flex: 1; }
+    .link-name { font-size: 14px; font-weight: 500; }
+    .link-id   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .link-url  { font-size: 11px; color: var(--accent); word-break: break-all; margin-top: 4px; font-family: monospace; }
+    .copy-btn  {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+      white-space: nowrap; font-family: inherit; transition: color .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+    /* instructions */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step  { display: flex; gap: 12px; }
+    .snum  { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #0f172a; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stxt  { font-size: 13px; color: var(--muted); line-height: 1.55; padding-top: 2px; }
+    .stxt strong { color: var(--text); font-weight: 500; }
+    code { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-family: monospace; color: var(--accent); }
+    .note { background: rgba(56,189,248,.07); border: 1px solid rgba(56,189,248,.2); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .note strong { color: var(--accent); }
+    #bulk-help { font-size: 12px; color: var(--muted); }
+    .empty-state { text-align: center; color: var(--muted); font-size: 14px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Attendance Admin</h1>
+    <p class="sub" style="margin-top:6px">Generate one-time registration links for each employee. Send each link to the employee — they open it once on their phone to register their device.</p>
+  </div>
+
+  <!-- Config card -->
+  <div class="card">
+    <h2>App configuration</h2>
+    <div>
+      <label>Attendance app URL (your hosted domain)</label>
+      <input type="url" id="app-url" placeholder="https://yourcompany.com/attendance" />
+    </div>
+  </div>
+
+  <!-- Single employee -->
+  <div class="card">
+    <h2>Add single employee</h2>
+    <div class="row">
+      <div>
+        <label>Employee ID</label>
+        <input type="text" id="single-id" placeholder="EMP001" />
+      </div>
+      <div>
+        <label>Full name</label>
+        <input type="text" id="single-name" placeholder="Rahul Sharma" />
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addSingle()">Generate link</button>
+  </div>
+
+  <!-- Bulk -->
+  <div class="card">
+    <h2>Bulk import</h2>
+    <div>
+      <label>Paste employee list — one per line: <code>EMP001, Rahul Sharma</code></label>
+      <textarea id="bulk-input" placeholder="EMP001, Rahul Sharma&#10;EMP002, Priya Mehta&#10;EMP003, Amit Singh"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="addBulk()">Generate all links</button>
+  </div>
+
+  <!-- Results -->
+  <div class="card" id="results-card" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <h2>Registration links</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="copyAll()" style="font-size:13px;padding:8px 14px">Copy all</button>
+        <button class="btn btn-ghost" onclick="clearAll()" style="font-size:13px;padding:8px 14px">Clear</button>
+      </div>
+    </div>
+    <div class="note">
+      <strong>Send each link individually</strong> to the correct employee. The link is tied to their Employee ID — do not mix them up. Each employee opens their link <strong>once</strong> on the phone they will use daily.
+    </div>
+    <div class="link-table" id="link-table">
+      <div class="empty-state" id="empty-state">No links generated yet.</div>
+    </div>
+  </div>
+
+  <!-- Google Sheet setup instructions -->
+  <div class="card">
+    <h2>Google Sheet — Employees tab setup</h2>
+    <p class="sub">When you generate links here, also add each employee to the <strong>Employees</strong> tab in your Google Sheet with Status = <code>Pending</code>. The Apps Script will set it to <code>Active</code> automatically when they register.</p>
+    <div class="divider"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="snum">1</div>
+        <div class="stxt">Open your Google Sheet → <strong>Employees</strong> tab</div>
+      </div>
+      <div class="step">
+        <div class="snum">2</div>
+        <div class="stxt">Add a row for each employee: <code>Employee ID | Name | (leave blank) | (leave blank) | Pending</code></div>
+      </div>
+      <div class="step">
+        <div class="snum">3</div>
+        <div class="stxt">Generate the link here and send it to the employee on WhatsApp or email</div>
+      </div>
+      <div class="step">
+        <div class="snum">4</div>
+        <div class="stxt">Once they open it on their phone, the row in Employees tab auto-updates to <strong>Active</strong> and their device token is stored</div>
+      </div>
+      <div class="step">
+        <div class="snum">5</div>
+        <div class="stxt">To reset a device (lost phone etc.) — change Status back to <code>Pending</code> and clear columns C and D, then send a fresh link</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const APP_URL_KEY = "att_admin_app_url";
+let employees = [];
+
+// Restore saved URL
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem(APP_URL_KEY);
+  if (saved) document.getElementById("app-url").value = saved;
+  document.getElementById("app-url").addEventListener("change", e => {
+    localStorage.setItem(APP_URL_KEY, e.target.value.trim());
+  });
+});
+
+function getAppUrl() {
+  const url = document.getElementById("app-url").value.trim().replace(/\/$/, "");
+  if (!url) { alert("Please enter the attendance app URL first."); return null; }
+  return url;
+}
+
+function addSingle() {
+  const url  = getAppUrl(); if (!url) return;
+  const id   = document.getElementById("single-id").value.trim();
+  const name = document.getElementById("single-name").value.trim();
+  if (!id || !name) { alert("Please enter both Employee ID and Name."); return; }
+  addEmployee(id, name, url);
+  document.getElementById("single-id").value   = "";
+  document.getElementById("single-name").value = "";
+}
+
+function addBulk() {
+  const url   = getAppUrl(); if (!url) return;
+  const lines = document.getElementById("bulk-input").value.trim().split("\n");
+  let added   = 0;
+  lines.forEach(line => {
+    const parts = line.split(",").map(s => s.trim());
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      addEmployee(parts[0], parts.slice(1).join(" "), url);
+      added++;
+    }
+  });
+  if (added) document.getElementById("bulk-input").value = "";
+  else alert("Could not parse any lines. Use format: EMP001, Full Name");
+}
+
+function addEmployee(id, name, appUrl) {
+  // Prevent duplicates
+  if (employees.find(e => e.id === id)) {
+    alert(`Employee ID ${id} already in the list.`); return;
+  }
+  const regLink = `${appUrl}?eid=${encodeURIComponent(id)}&reg=1`;
+  employees.push({ id, name, link: regLink });
+  renderLinks();
+}
+
+function renderLinks() {
+  const table = document.getElementById("link-table");
+  const card  = document.getElementById("results-card");
+  card.style.display = "flex";
+
+  if (employees.length === 0) {
+    table.innerHTML = '<div class="empty-state">No links generated yet.</div>';
+    return;
+  }
+
+  table.innerHTML = employees.map((emp, i) => `
+    <div class="link-row">
+      <div class="link-emp">
+        <div class="link-name">${emp.name}</div>
+        <div class="link-id">ID: ${emp.id}</div>
+        <div class="link-url">${emp.link}</div>
+      </div>
+      <button class="copy-btn" onclick="copyLink(${i}, this)">Copy link</button>
+    </div>
+  `).join("");
+}
+
+function copyLink(i, btn) {
+  navigator.clipboard.writeText(employees[i].link).then(() => {
+    btn.textContent = "Copied ✓";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy link"; btn.classList.remove("copied"); }, 2000);
+  });
+}
+
+function copyAll() {
+  const text = employees.map(e => `${e.name} (${e.id})\n${e.link}`).join("\n\n");
+  navigator.clipboard.writeText(text).then(() => alert("All links copied to clipboard."));
+}
+
+function clearAll() {
+  if (confirm("Clear all generated links?")) {
+    employees = [];
+    renderLinks();
+  }
+}
+</script>
+</body>
+</html>

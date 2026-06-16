@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Attendance</title>
+  <style>
+    /* ── tokens ── */
+    :root {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    #334155;
+      --accent:    #38bdf8;
+      --accent-dk: #0284c7;
+      --success:   #4ade80;
+      --error:     #f87171;
+      --warn:      #fb923c;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --radius:    16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 400px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── logo / header ── */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-icon svg { width: 20px; height: 20px; stroke: #0f172a; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .brand-name { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .brand-sub  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* ── divider ── */
+    .divider { height: 1px; background: var(--border); }
+
+    /* ── employee info row ── */
+    .emp-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      background: var(--accent-dk);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .emp-name { font-size: 16px; font-weight: 600; }
+    .emp-id   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── status badge ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .badge.active   { background: rgba(74,222,128,.12); color: var(--success); }
+    .badge.active .badge-dot { background: var(--success); }
+    .badge.pending  { background: rgba(251,146,60,.12); color: var(--warn); }
+    .badge.pending .badge-dot { background: var(--warn); }
+
+    /* ── info rows ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .info-cell {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .info-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
+    .info-value { font-size: 14px; font-weight: 500; }
+
+    /* ── location bar ── */
+    .loc-bar {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .loc-bar svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .loc-text { color: var(--muted); line-height: 1.4; }
+    .loc-text span { color: var(--text); font-weight: 500; }
+
+    /* ── main button ── */
+    .btn-main {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      letter-spacing: -0.2px;
+    }
+    .btn-main:active { transform: scale(.98); opacity: .9; }
+    .btn-main:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .btn-main.ready    { background: var(--accent); color: #0f172a; }
+    .btn-main.locating { background: var(--border); color: var(--muted); }
+    .btn-main.done     { background: rgba(74,222,128,.15); color: var(--success); border: 1px solid rgba(74,222,128,.3); }
+    .btn-main.error-st { background: rgba(248,113,113,.1); color: var(--error); border: 1px solid rgba(248,113,113,.25); }
+
+    /* ── toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+      opacity: 0;
+      z-index: 100;
+      max-width: 90vw;
+      white-space: normal;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(74,222,128,.4); color: var(--success); }
+    .toast.fail    { border-color: rgba(248,113,113,.4); color: var(--error); }
+
+    /* ── screens ── */
+    .screen { display: none; flex-direction: column; gap: 20px; }
+    .screen.active { display: flex; }
+
+    /* ── register screen ── */
+    .reg-heading { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.25; }
+    .reg-sub     { font-size: 14px; color: var(--muted); line-height: 1.55; }
+    .reg-steps   { display: flex; flex-direction: column; gap: 10px; }
+    .reg-step    { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num    { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #0f172a; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .step-text   { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .step-text strong { color: var(--text); font-weight: 500; }
+
+    /* ── loading spinner ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── already marked ── */
+    .marked-banner {
+      background: rgba(74,222,128,.08);
+      border: 1px solid rgba(74,222,128,.2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .marked-banner .tick { font-size: 28px; margin-bottom: 6px; }
+    .marked-banner p { font-size: 14px; color: var(--success); font-weight: 500; }
+    .marked-banner small { font-size: 12px; color: var(--muted); }
+
+    /* ── footer ── */
+    .footer { font-size: 11px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- ── SCREEN 1: Registering (first-time only) ── -->
+<div class="card screen active" id="screen-register">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Attendance</div>
+      <div class="brand-sub">Device setup</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="reg-heading">Setting up your device</div>
+  <div class="reg-sub">This is a one-time setup. Your device is being linked to your employee account. Please wait.</div>
+  <div class="reg-steps">
+    <div class="reg-step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Device recognised</strong><br>Your unique registration link is being verified.</div>
+    </div>
+    <div class="reg-step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>Device linked</strong><br>Only this device can mark your attendance going forward.</div>
+    </div>
+    <div class="reg-step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>Ready to use</strong><br>Bookmark this page. Open it every morning at the office to mark attendance.</div>
+    </div>
+  </div>
+  <button class="btn-main locating" id="reg-btn" disabled>
+    <span class="spinner"></span>Registering device…
+  </button>
+  <div class="footer">Do not share this link with anyone.</div>
+</div>
+
+<!-- ── SCREEN 2: Main attendance screen ── -->
+<div class="card screen" id="screen-main">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Attendance</div>
+      <div class="brand-sub" id="today-date">—</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- employee row -->
+  <div class="emp-row">
+    <div class="avatar" id="emp-avatar">—</div>
+    <div>
+      <div class="emp-name" id="emp-name">Loading…</div>
+      <div class="emp-id"  id="emp-id">—</div>
+    </div>
+    <div class="badge active" id="emp-badge">
+      <div class="badge-dot"></div>Active
+    </div>
+  </div>
+
+  <!-- info grid -->
+  <div class="info-grid">
+    <div class="info-cell">
+      <div class="info-label">Status today</div>
+      <div class="info-value" id="status-today">Not marked</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Check-in time</div>
+      <div class="info-value" id="checkin-time">—</div>
+    </div>
+  </div>
+
+  <!-- location bar -->
+  <div class="loc-bar" id="loc-bar">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    <div class="loc-text" id="loc-text">Detecting your location…</div>
+  </div>
+
+  <!-- already marked banner (hidden by default) -->
+  <div class="marked-banner" id="marked-banner" style="display:none">
+    <div class="tick">✅</div>
+    <p>Attendance marked for today</p>
+    <small id="marked-time">—</small>
+  </div>
+
+  <!-- main action button -->
+  <button class="btn-main locating" id="mark-btn" disabled onclick="markAttendance()">
+    <span class="spinner"></span>Getting location…
+  </button>
+
+  <div class="footer">Your location is only used to verify you are at the office.</div>
+</div>
+
+<!-- ── SCREEN 3: Error / Not authorised ── -->
+<div class="card screen" id="screen-error">
+  <div class="brand">
+    <div class="brand-icon" style="background:var(--error)">
+      <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Attendance</div>
+      <div class="brand-sub">Access issue</div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="reg-heading" id="error-title">Something went wrong</div>
+  <div class="reg-sub"    id="error-msg">Please contact your admin.</div>
+  <div class="footer">If this persists, ask admin to re-send your registration link.</div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIGURATION — IT team: update these two values before deploy
+// ══════════════════════════════════════════════════════════════
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrC_Z63ahh4ngAzK7W5sCAGLRy8A6aXxgOfA_or3ZyoK7Z6hJmGKgzffdnAWHkbfbPIQ/exec";
+// ══════════════════════════════════════════════════════════════
+
+// ── state ──
+let currentLat  = null;
+let currentLng  = null;
+let empId       = null;
+let deviceToken = null;
+let markedToday = false;
+
+// ── init ──
+window.addEventListener("DOMContentLoaded", async () => {
+  setDate();
+  const params = new URLSearchParams(window.location.search);
+  const regEmpId = params.get("eid");   // present only on registration links
+  const regMode  = params.get("reg");   // "1" if registration link
+
+  if (regMode === "1" && regEmpId) {
+    // ── REGISTRATION FLOW ──
+    showScreen("screen-register");
+    await handleRegistration(regEmpId);
+  } else {
+    // ── RETURNING EMPLOYEE FLOW ──
+    showScreen("screen-main");
+    const stored = getStored();
+    if (!stored) return showError("Device not registered", "Use the registration link your admin sent you to set up this device first.");
+    empId       = stored.empId;
+    deviceToken = stored.token;
+    await verifyAndLoad();
+  }
+});
+
+// ── registration ──
+async function handleRegistration(regEmpId) {
+  // Generate a unique token for this device
+  const token = generateToken();
+  try {
+    const res = await api({ action: "register", employeeId: regEmpId, deviceToken: token });
+    if (!res.success) {
+      if (res.message === "Device already registered") {
+        // Device already set up — redirect to main app if token matches
+        const stored = getStored();
+        if (stored && stored.empId === regEmpId) {
+          window.location.href = window.location.pathname; // strip query params
+        } else {
+          showError("Already registered", "This employee ID is already linked to another device. Contact your admin.");
+        }
+      } else {
+        showError("Registration failed", res.message);
+      }
+      return;
+    }
+    // Save to localStorage
+    localStorage.setItem("att_emp", JSON.stringify({ empId: regEmpId, token }));
+    document.getElementById("reg-btn").textContent = "✓ Device registered — redirecting…";
+    document.getElementById("reg-btn").className = "btn-main done";
+    setTimeout(() => {
+      window.location.href = window.location.pathname; // go to main app
+    }, 1800);
+  } catch (e) {
+    showError("Network error", "Could not reach the server. Check your internet and try again.");
+  }
+}
+
+// ── verify + load main screen ──
+async function verifyAndLoad() {
+  try {
+    const res = await api({ action: "verify-device", employeeId: empId, deviceToken });
+    if (!res.success) return showError("Access denied", res.message);
+
+    // Populate UI
+    document.getElementById("emp-name").textContent   = res.name || empId;
+    document.getElementById("emp-id").textContent     = "ID: " + empId;
+    document.getElementById("emp-avatar").textContent = (res.name || empId).charAt(0).toUpperCase();
+
+    // Start location watch
+    startLocation();
+  } catch (e) {
+    showError("Network error", "Could not verify your device. Check your internet connection.");
+  }
+}
+
+// ── geolocation ──
+function startLocation() {
+  if (!navigator.geolocation) {
+    setLocBar("Location not supported on this device.", false);
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 0
+  });
+}
+
+function onLocationSuccess(pos) {
+  currentLat = pos.coords.latitude;
+  currentLng = pos.coords.longitude;
+  const acc  = Math.round(pos.coords.accuracy);
+  setLocBar(`Location acquired (±${acc}m accuracy)`, true);
+
+  // Check if already marked today (stored locally)
+  const todayKey = "att_marked_" + todayStr();
+  const stored   = localStorage.getItem(todayKey);
+  if (stored) {
+    showMarkedBanner(stored);
+    return;
+  }
+
+  // Enable the mark button
+  const btn = document.getElementById("mark-btn");
+  btn.className   = "btn-main ready";
+  btn.disabled    = false;
+  btn.textContent = "Mark present";
+}
+
+function onLocationError(err) {
+  const msgs = {
+    1: "Location access denied. Please allow location in your browser settings.",
+    2: "Location unavailable. Step outside or disable VPN and try again.",
+    3: "Location request timed out. Try again."
+  };
+  setLocBar(msgs[err.code] || "Location error.", false);
+}
+
+// ── mark attendance ──
+async function markAttendance() {
+  if (!currentLat || !currentLng) return;
+  const btn = document.getElementById("mark-btn");
+  btn.disabled   = true;
+  btn.className  = "btn-main locating";
+  btn.innerHTML  = '<span class="spinner"></span>Marking…';
+
+  try {
+    const res = await api({
+      action: "mark-attendance",
+      employeeId:  empId,
+      deviceToken: deviceToken,
+      lat: currentLat,
+      lng: currentLng
+    });
+
+    if (res.success) {
+      const timeStr = res.time || new Date().toLocaleTimeString("en-IN");
+      localStorage.setItem("att_marked_" + todayStr(), timeStr);
+      showMarkedBanner(timeStr);
+      showToast("✓ Attendance marked at " + timeStr, "success");
+    } else {
+      btn.className   = "btn-main error-st";
+      btn.disabled    = false;
+      btn.textContent = res.message === "Already marked for today"
+        ? "Already marked today"
+        : "Try again — " + res.message;
+      showToast(res.message, "fail");
+      if (res.message === "Already marked for today") showMarkedBanner("");
+    }
+  } catch (e) {
+    btn.className   = "btn-main error-st";
+    btn.disabled    = false;
+    btn.textContent = "Network error — tap to retry";
+    showToast("Network error. Check your connection.", "fail");
+  }
+}
+
+// ── helpers ──
+function showMarkedBanner(time) {
+  document.getElementById("marked-banner").style.display = "block";
+  document.getElementById("marked-time").textContent     = time ? "Checked in at " + time : "";
+  document.getElementById("status-today").textContent    = "Present ✓";
+  document.getElementById("checkin-time").textContent    = time || "—";
+  const btn = document.getElementById("mark-btn");
+  btn.className   = "btn-main done";
+  btn.disabled    = true;
+  btn.textContent = "Attendance marked ✓";
+}
+
+function setLocBar(msg, ok) {
+  document.getElementById("loc-text").innerHTML = ok
+    ? `<span>${msg}</span>`
+    : msg;
+}
+
+function setDate() {
+  const d = new Date();
+  document.getElementById("today-date").textContent =
+    d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getStored() {
+  try { return JSON.parse(localStorage.getItem("att_emp")); } catch { return null; }
+}
+
+function generateToken() {
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function showError(title, msg) {
+  document.getElementById("error-title").textContent = title;
+  document.getElementById("error-msg").textContent   = msg;
+  showScreen("screen-error");
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className   = "toast " + type + " show";
+  setTimeout(() => { t.className = "toast " + type; }, 3500);
+}
+
+async function api(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" }, // avoids CORS preflight
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+</script>
+</body>
+</html>
