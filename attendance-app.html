@@ -491,7 +491,7 @@ async function markAttendance() {
     });
 
     if (res.success) {
-      const timeStr = res.time || new Date().toLocaleTimeString("en-IN");
+      const timeStr = (res.time || new Date().toLocaleTimeString("en-IN")) + (res.late ? " (Late)" : "");
       saveTodayMark("att_marked_" + todayStr(), timeStr);
       showMarkedBanner(timeStr);
       showToast("✓ Attendance marked at " + timeStr, "success");
@@ -537,7 +537,12 @@ function setDate() {
 }
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  // Local date (NOT toISOString, which is UTC and gives yesterday's
+  // date between midnight and 5:30 am IST)
+  const d = new Date();
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
 }
 
 // ── storage: write to localStorage + cookie + sessionStorage ──
